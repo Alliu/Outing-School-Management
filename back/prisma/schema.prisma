@@ -1,0 +1,358 @@
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["relationJoins"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model user_profile {
+  id                                        Int                @id @default(autoincrement())
+  role                                      user_profile_role?
+  firstname                                 String?            @db.VarChar(255)
+  lastname                                  String?            @db.VarChar(255)
+  adress                                    String?            @db.VarChar(255)
+  phone                                     Int?
+  created_at                                DateTime?          @default(now()) @db.DateTime(0)
+  updated_at                                DateTime?          @updatedAt @db.DateTime(0)
+  auth_user                                 auth_user?         
+  event_participant                         participant[]
+  media                                     media[]
+  message_message_receiver_idTouser_profile message[]          @relation("message_receiver_idTouser_profile")
+  message_message_writer_idTouser_profile   message[]          @relation("message_writer_idTouser_profile")
+  parent_child                              parent_child[]
+  survey                                    survey[]
+  survey_result                             survey_result[]
+  teacher_school                            teacher_school[]
+  contact_ask                               user_contact[]     @relation("contact_ask")
+  ask_contact                               user_contact[]     @relation("ask_contact")
+  user_task                                 user_task[]
+  events                                    event[]
+  notification                              user_notification[]     @relation
+  token                                     token[]            @relation
+  socket                                    String?            
+}
+
+enum user_profile_role {
+  TEACHER
+  PARENT
+}
+
+model auth_user {
+  user_id      Int
+  email        String?          @unique @db.VarChar(255)
+  password     String?          @unique @db.VarChar(255)
+  status       auth_user_status @default(PENDING)
+  user_profile user_profile     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "auth_user_ibfk_1")
+
+  @@id(user_id)
+  @@index([user_id], map: "user_id")
+}
+
+enum auth_user_status {
+  PENDING
+  CONFIRMED_BY_SCHOOL
+  ACTIVATED
+}
+
+model token {
+  user_id    Int        @unique
+  token      String
+  type       token_type
+  expired_at DateTime?
+  created_at DateTime?  @default(now())
+  updated_at DateTime?  @updatedAt
+
+  user_profile user_profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@id([user_id, token])
+
+}
+enum token_type {
+  REFRESH
+  VALIDATION_EMAIL
+  RESET
+}
+
+model school {
+  id             Int              @id @default(autoincrement())
+  name           String?          @db.VarChar(255)
+  email          String?          @db.VarChar(255)
+  address        String?          @db.VarChar(255)
+  created_at     DateTime?        @default(now())
+  updated_at     DateTime?        @updatedAt
+  teacher_school teacher_school[]
+
+  @@unique([name, email], map: "school_index_0")
+}
+
+model teacher_school {
+  teacher_id Int
+  school_id  Int
+
+  user_profile user_profile @relation(fields: [teacher_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "teacher_school_ibfk_1")
+  school       school       @relation(fields: [school_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "teacher_school_ibfk_2")
+
+  @@id([teacher_id, school_id])
+  @@unique([teacher_id, school_id], map: "teacher_school_index_1")
+  @@index([school_id], map: "school_id")
+}
+
+model child {
+  id           Int            @id @default(autoincrement())
+  firstname    String?        @db.VarChar(255)
+  lastname     String?        @db.VarChar(255)
+  date_birth   DateTime?      @db.Timestamp(0)
+  informations String?        @db.VarChar(255)
+  teacher_id   Int?
+  level        child_level
+  created_at   DateTime?       @default(now())
+  updated_at   DateTime?       @updatedAt
+  parent_child parent_child[]
+  media        media[]        @relation()
+}
+
+enum child_level {
+  TPS
+  PS
+  MS
+  GS
+  CP
+  CE1
+  CE2
+  CM1
+  CM2
+}
+
+model parent_child {
+  parent_id Int
+  child_id  Int
+
+  user_profile user_profile? @relation(fields: [parent_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "parent_child_ibfk_1")
+  child        child?        @relation(fields: [child_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "parent_child_ibfk_2")
+
+  @@id([parent_id, child_id])
+  @@index([child_id], map: "child_id")
+  @@index([parent_id], map: "parent_id")
+}
+
+model user_contact {
+  contact_id  Int
+  user_id     Int
+  status      user_contact_status?
+  notification_id   Int          
+  created_at  DateTime?            @default(now())
+  updated_at  DateTime?            @updatedAt
+  contact_ask user_profile?        @relation("contact_ask", fields: [contact_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "user_contact_ibfk_1")
+  ask_contact user_profile?        @relation("ask_contact", fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "user_contact_ibfk_2")
+ notification  notification?       @relation("notification_contact", fields: [notification_id], references: [id])
+
+  @@id([contact_id, user_id])
+  @@unique([contact_id, user_id], map: "contact_user_index")
+  @@unique([notification_id], map: "notification_contact")
+  @@index([contact_id], map: "contact_id")
+  @@index([user_id], map: "user_id")
+}
+
+enum user_contact_status {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+model event {
+  id             Int           @id @default(autoincrement())
+  organiser_id   Int          
+  title          String?       @db.VarChar(255)
+  date_start     DateTime?     @db.Timestamp(0)
+  date_end       DateTime?     @db.Timestamp(0)
+  place          String?       @db.VarChar(255)
+  address        String?       @db.VarChar(255)
+  description    String?       @db.Text
+  budget         Float?        @db.Float
+  detail         String?       @db.Text
+  theme          theme?
+  created_at     DateTime      @default(now()) 
+  updated_at     DateTime?     @updatedAt
+  task           task[]        @relation
+  askHelp        Boolean?
+  path           String?
+  notification_id   Int?
+  participant    participant[] @relation
+  user_organiser user_profile? @relation(fields: [organiser_id], references: [id])
+  notification  notification?       @relation("notification_event", fields: [notification_id], references: [id])
+  @@unique([notification_id],map: "notification_event")
+}
+
+enum theme {
+  CULTUREL
+  SPORT
+  CULINAIRE
+  FETE
+  VENTE    
+  EXCURSION
+}
+
+model participant {
+  event_id     Int
+  participant_id Int
+  created_at   DateTime?  @default(now())
+  participant user_profile? @relation(fields: [participant_id], references: [id])
+  event     event         @relation(fields: [event_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+ @@id([participant_id, event_id])
+  @@index([event_id], map: "event_id")
+  @@index([participant_id], map: "participant_id")
+}
+model media {
+  id           Int           @id @default(autoincrement())
+  alt          String?       @db.VarChar(255)
+  path         String       @db.VarChar(255)
+  user_id      Int         
+  child_id     Int?
+  type         media_type?
+  notification_id   Int?      
+  created_at   DateTime?    @default(now())
+  user_profile user_profile? @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "media_ibfk_1")
+  child          child? @relation(fields: [child_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  notification  notification?       @relation("notification_file", fields: [notification_id], references: [id])
+  @@unique([notification_id], map: "notification_file")
+  @@index([user_id])
+  @@index([child_id])
+}
+
+enum media_type {
+  ANY
+  USER_PROFILE_ID
+  CHILD_ID
+}
+
+model message {
+  id                                             Int             @id @default(autoincrement())
+  writer_id                                      Int?
+  receiver_id                                    Int?
+  object                                         String?         @db.VarChar(255)
+  content                                        String?         @db.Text
+  status                                         message_status?
+  created_at                                     DateTime?       @default(now())
+  user_profile_message_receiver_idTouser_profile user_profile?   @relation("message_receiver_idTouser_profile", fields: [receiver_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "message_ibfk_1")
+  user_profile_message_writer_idTouser_profile   user_profile?   @relation("message_writer_idTouser_profile", fields: [writer_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "message_ibfk_2")
+
+  @@index([receiver_id], map: "receiver_id")
+  @@index([writer_id], map: "writer_id")
+}
+
+enum message_status {
+  READ
+  NOT_OPENED
+  DELETED
+}
+
+model survey {
+  id            Int             @id @default(autoincrement())
+  title         String?         @db.VarChar(255)
+  date          DateTime?
+  address       String?         @db.VarChar(255)
+  description   String?         @db.Text
+  budget        Float?          @db.Float
+  author_id     Int?
+  theme         String?
+  date_end      DateTime?
+  notification_id   Int?
+  created_at    DateTime?       @default(now())
+  updated_at    DateTime?       @updatedAt
+  user_profile  user_profile?   @relation(fields: [author_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "survey_ibfk_1")
+  survey_result survey_result[] @relation
+  notification  notification?       @relation("notification_survey", fields: [notification_id], references: [id])
+  @@unique([notification_id], map: "notification_survey")
+
+  @@index([author_id])
+}
+
+model survey_result {
+  voter_id  Int
+  survey_id Int
+  result    String? @db.VarChar(255)
+  survey    survey  @relation(fields: [survey_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "survey_result_ibfk_1")
+
+  user_profile user_profile @relation(fields: [voter_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "survey_result_ibfk_2")
+
+  @@id([voter_id, survey_id])
+  @@index([survey_id])
+  @@index([voter_id])
+}
+
+model task {
+  id          Int          @id @default(autoincrement())
+  title       String?      @db.VarChar(255)
+  description String?      @db.VarChar(255)
+  event_id    Int
+  status      task_status?
+  created_at  DateTime?   @default(now())
+  updated_at  DateTime?   @updatedAt
+  event       event       @relation(fields: [event_id], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "task_ibfk_1")
+  user_task   user_task[]  @relation
+ 
+  @@index([event_id])
+}
+
+model user_task {
+  volunteer_id Int
+  task_id      Int
+  created_at   DateTime?    @default(now())
+  task         task          @relation(fields: [task_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "user_task_ibfk_1")
+  user_profile user_profile? @relation(fields: [volunteer_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "user_task_ibfk_2")
+
+  @@id([volunteer_id, task_id])
+  @@index([task_id])
+  @@index([volunteer_id])
+}
+
+enum task_status {
+  TODO
+  IN_PROGRESS
+  COMPLETE
+}
+
+model notification {
+  id          Int          @id @default(autoincrement())
+  type        notif_type
+  message     String
+  user        user_notification[]  @relation
+  contact_id  Int?
+  media_id     Int?
+  event_id     Int?
+  survey_id    Int?
+  message_id   Int?
+  created_at   DateTime?    @default(now())
+  user_contact user_contact? @relation("notification_contact")
+  media     media?      @relation("notification_file")
+  event     event?      @relation("notification_event")
+  survey    survey?    @relation("notification_survey")
+
+}
+
+model user_notification {
+  user_id     Int
+  notification_id Int
+  isRead        Boolean   @default(false)
+  created_at   DateTime?  @default(now())
+  updated_at   DateTime?  @updatedAt
+
+  user user_profile? @relation(fields: [user_id], references: [id])
+  notification     notification?         @relation(fields: [notification_id], references: [id])
+
+  @@id([user_id, notification_id])
+  @@index([user_id])
+  @@index([notification_id])
+}
+enum notif_type {
+  CONTACT
+  EVENT
+  SURVEY
+  FILE
+  MESSAGE
+}

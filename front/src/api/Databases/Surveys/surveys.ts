@@ -1,0 +1,50 @@
+const surveys = [
+    {
+        id: 1,
+        title: "Cinema en plein air",
+        date: "Thu Oct 17 2024 23:41:59 GMT+0200 (heure d’été d’Europe centrale)",
+        place: "Atelier de la décoration",
+        author: "Aline",
+        budget: 10,
+        description: "Description détaillé de l'atelier",
+        imgPath: "src/assets/img/musée.png",
+        numberOfInterestedPerson: 2,
+    },
+    {
+        id: 2,
+        title: "Atelier Design",
+        date: "Thu Oct 17 2024 23:41:59 GMT+0200 (heure d’été d’Europe centrale)",
+        place: "Atelier de la décoration",
+        author: "Aline",
+        budget: 10,
+        description: "Description détaillé de l'atelier",
+        imgPath: "./src/assets/img/musée.png",
+        numberOfInterestedPerson: 2,
+    },
+    {
+        id: 3,
+        title: "Atelier Design",
+        date: "Thu Oct 17 2024 23:41:59 GMT+0200 (heure d’été d’Europe centrale)",
+        place: "Atelier de la décoration",
+        author: "Aline",
+        budget: 10,
+        description: "Description détaillé de l'atelier",
+        imgPath: "src/assets/img/musée.png",
+        numberOfInterestedPerson: 2,
+    },
+    {
+        id: 4,
+        title: "Atelier Design",
+        date: "Thu Oct 17 2024 23:41:59 GMT+0200 (heure d’été d’Europe centrale)",
+        place: "Atelier de la décoration",
+        author: "Aline",
+        budget: 10,
+        description: "Description détaillé de l'atelier",
+        imgPath: "src/assets/img/musée.png",
+        numberOfInterestedPerson: 2,
+    },
+];
+
+export const surveysfakers = {
+    datas: surveys,
+};
