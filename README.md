@@ -6,7 +6,7 @@ La création et la gestion des sorties scolaires par les enseignants.
 La communication efficace avec les parents pour obtenir leurs validations ou retours.
 Une vue claire des participants, autorisations et informations pratiques.
 
-Architecture
+Architecture du projet
 Le projet est une ébauche et ne présente pas toutes les fonctionnalités ni toutes les pages de présentation.
 L'application est divisée en trois principales parties :
 
@@ -17,8 +17,8 @@ Le projet front présente les pages d'authentification et de création de compte
 📚 Technologies utilisées : React.js, Tailwind CSS.
 
 2️⃣ Backend
-Contient les routes API intégrant la logique métier et les interactions avec la base de données. et les fonctionnalités correspondant aux pages front
-📚 Technologies utilisées : Node.js, Express.js, Prisma ORM.
+Contient les routes API intégrant la logique métier et les interactions avec la base de données et les fonctionnalités correspondant aux pages front
+📚 Technologies utilisées : Node.js, Nestjs, Prisma ORM.
 
 3️⃣ Base de données
 Un modèle relationnel structuré avec MySQL pour gérer :
@@ -58,3 +58,18 @@ Prérequis
 Node.js (v16+)
 npm ou yarn
 MySQL
+Git
+
+Commandes 
+Backend 
+cd backend
+npm install
+npx prisma generate
+npx prisma migrate dev --name init
+npm run start:dev
+
+Frontend
+cd frontend
+npm install
+npm run dev
+
