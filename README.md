@@ -63,13 +63,13 @@ Git
 Commandes 
 Backend 
 cd backend
-npm install
-npx prisma generate
-npx prisma migrate dev --name init
-npm run start:dev
+- npm install
+- npx prisma generate
+- npx prisma migrate dev --name init
+- npm run start:dev
 
 Frontend
-cd frontend
-npm install
-npm run dev
+- cd frontend
+- npm install
+- npm run dev
 
